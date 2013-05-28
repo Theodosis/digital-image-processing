@@ -1,0 +1,36 @@
+function [ xc ] = bayer2rgb( xb, M, N, type )
+    filter = zeros( M, N, 3 );
+    filter( 1:2:M, 2:2:N, 1 ) = 1;
+    filter( 2:2:M, 1:2:N, 3 ) = 1;
+    filter( 1:2:M, 1:2:N, 2 ) = 1;
+    filter( 2:2:M, 2:2:N, 2 ) = 1;
+    
+    image = zeros( M, N, 3 );
+    image( :, :, 1 ) = xb;
+    image( :, :, 2 ) = xb;
+    image( :, :, 3 ) = xb;
+    
+    image = filter .* image;
+
+    if type == 1 
+        image( :, :, 1 ) = image( :, :, 1 ) + image( [ 2:M M - 1 ], :, 1 );
+        image( :, :, 1 ) = image( :, :, 1 ) + image( :, [ 2:N N - 1 ], 1 );
+
+        image( :, :, 3 ) = image( :, :, 3 ) + image( [ 2:M M - 1 ], :, 3 );
+        image( :, :, 3 ) = image( :, :, 3 ) + image( :, [ 2:N N - 1 ], 3 );
+
+        image( :, :, 2 ) = image( :, :, 2 ) + image( [ 2:M M - 1 ], :, 2 );
+    elseif type == 2
+        image( :, :, 1 ) = image( :, :, 1 ) + image( [ 2:M M - 1 ], :, 1 ) / 2 + image( [ 2 1:M - 1 ], :, 1 ) / 2;
+        image( :, :, 1 ) = image( :, :, 1 ) + image( :, [ 2:N N - 1 ], 1 ) / 2 + image( :, [ 2 1:N - 1 ], 1 ) / 2;
+
+        image( :, :, 3 ) = image( :, :, 3 ) + image( [ 2:M M - 1 ], :, 3 ) / 2 + image( [ 2 1:M - 1 ], :, 3 ) / 2;
+        image( :, :, 3 ) = image( :, :, 3 ) + image( :, [ 2:N N - 1 ], 3 ) / 2 + image( :, [ 2 1:N - 1 ], 3 ) / 2;
+        
+        image( :, :, 2 ) = image( :, :, 2 ) + (...
+            image( [ 2 1:M - 1 ], :, 2 ) + image( [ 2:M M - 1 ], :, 2 ) + ...
+            image( :, [ 2 1:N - 1 ], 2 ) + image( :, [ 2:N N - 1 ], 2 ) ) / 4;
+    end
+    
+    xc = uint8( image );
+end
